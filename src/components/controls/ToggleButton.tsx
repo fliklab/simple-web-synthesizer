@@ -1,26 +1,26 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { COLORS, SHADOWS, TRANSITIONS, FONTS } from "../../constants/styles";
-import type { ToggleButtonProps } from "../../types/synth";
+import { COLORS, SHADOWS } from "../../constants/styles";
 
-const Button = styled.button<{ isOn: boolean; size: number; onColor: string }>`
+const Button = styled.button<{ isOn: boolean }>`
   position: relative;
-  width: ${(props) => props.size}px;
-  height: ${(props) => props.size}px;
+  width: 60px;
+  height: 60px;
   background-color: ${(props) =>
-    props.isOn ? props.onColor : COLORS.control.inactive};
+    props.isOn ? COLORS.primary : COLORS.background.medium};
   border-radius: 8px;
-  border: 2px solid ${COLORS.background.dark};
+  border: 2px solid ${COLORS.border};
   box-shadow: ${(props) =>
     props.isOn
-      ? `${SHADOWS.button.active(props.onColor)}`
+      ? SHADOWS.button.active(COLORS.primary)
       : SHADOWS.button.inactive};
-  transition: ${TRANSITIONS.normal};
+  transition: all 0.2s ease;
   cursor: pointer;
   outline: none;
 
   &:hover {
-    transform: scale(1.02);
+    background-color: ${(props) =>
+      props.isOn ? COLORS.primary : COLORS.background.light};
   }
 
   &:active {
@@ -28,36 +28,43 @@ const Button = styled.button<{ isOn: boolean; size: number; onColor: string }>`
   }
 `;
 
-const ButtonLabel = styled.div<{ color: string }>`
+const Label = styled.div`
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: ${FONTS.mono};
-  font-size: 0.75rem;
-  font-weight: bold;
-  color: ${(props) => props.color};
+  font-family: "Space Mono", monospace;
+  font-size: 0.875rem;
+  color: ${COLORS.text.primary};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
 `;
 
-const ButtonHighlight = styled.div<{ isOn: boolean }>`
+const Highlight = styled.div`
   position: absolute;
-  top: 1px;
-  left: 1px;
-  right: 1px;
+  top: 2px;
+  left: 2px;
+  right: 2px;
   height: 30%;
-  background: ${(props) =>
-    props.isOn
-      ? "linear-gradient(to bottom, rgba(255,255,255,0.4), transparent)"
-      : "linear-gradient(to bottom, rgba(255,255,255,0.1), transparent)"};
-  border-radius: 4px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0)
+  );
+  border-radius: 4px 4px 0 0;
+  pointer-events: none;
 `;
+
+interface ToggleButtonProps {
+  label: string;
+  initialState?: boolean;
+  onChange?: (state: boolean) => void;
+}
 
 export const ToggleButton: React.FC<ToggleButtonProps> = ({
-  size = 60,
-  label = "",
-  onColor = COLORS.primary,
-  labelColor = COLORS.text.secondary,
+  label,
   initialState = false,
   onChange = () => {},
 }) => {
@@ -70,9 +77,9 @@ export const ToggleButton: React.FC<ToggleButtonProps> = ({
   };
 
   return (
-    <Button isOn={isOn} size={size} onColor={onColor} onClick={handleClick}>
-      {label && <ButtonLabel color={labelColor}>{label}</ButtonLabel>}
-      <ButtonHighlight isOn={isOn} />
+    <Button isOn={isOn} onClick={handleClick}>
+      <Highlight />
+      <Label>{label}</Label>
     </Button>
   );
 };

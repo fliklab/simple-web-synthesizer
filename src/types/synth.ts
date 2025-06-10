@@ -1,10 +1,12 @@
 import * as Tone from "tone";
 
-export type WaveformType = "sine" | "triangle" | "sawtooth" | "square";
+export type WaveformType = "sine" | "square" | "sawtooth" | "triangle";
+export type FilterType = "lowpass" | "highpass";
 
 export interface SynthParams {
   oscillator: {
     type: WaveformType;
+    volume: number;
   };
   envelope: {
     attack: number;
@@ -12,14 +14,13 @@ export interface SynthParams {
     sustain: number;
     release: number;
   };
-  volume: number;
   filter: {
     frequency: number;
-    enabled: boolean;
+    type: FilterType;
+    Q: number;
   };
   reverb: {
-    wet: number;
-    enabled: boolean;
+    mix: number;
   };
 }
 
@@ -82,9 +83,8 @@ export interface NoteButtonProps {
 }
 
 export interface WaveformSelectorProps {
-  options?: WaveformType[];
-  initialValue?: WaveformType;
-  onChange?: (waveform: WaveformType) => void;
+  selected: WaveformType;
+  onChange: (type: WaveformType) => void;
 }
 
 export interface ADSRVisualizerProps {
@@ -117,3 +117,12 @@ export interface SynthState {
 export type KeyboardMap = {
   [key: string]: string;
 };
+
+export interface CircularKnobProps {
+  label: string;
+  min: number;
+  max: number;
+  initialValue: number;
+  onChange: (value: number) => void;
+  logScale?: boolean;
+}

@@ -1,264 +1,151 @@
-import { useRef, useCallback, useState, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { COLORS, SHADOWS, TRANSITIONS, FONTS } from "../../constants/styles";
-import type { KnobProps } from "../../types/synth";
-import { clamp, normalize, degreesToRadians } from "../../utils/math";
+import { COLORS, SHADOWS, FONTS } from "../../constants/styles";
+import type { CircularKnobProps } from "../../types/synth";
 
-const KnobContainer = styled.div`
+const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.5rem;
 `;
 
-const KnobLabel = styled.div`
-  font-family: ${FONTS.mono};
-  font-size: 0.75rem;
-  color: ${COLORS.text.muted};
-  margin-bottom: 0.5rem;
+const KnobContainer = styled.div`
+  position: relative;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
 `;
 
-const KnobValue = styled.div`
-  font-family: ${FONTS.mono};
-  font-size: 1.125rem;
-  color: ${COLORS.text.muted};
-  margin-top: 0.5rem;
-`;
-
-const KnobSvg = styled.svg`
+const Knob = styled.div<{ rotation: number }>`
   position: absolute;
   inset: 0;
-  pointer-events: none;
-`;
-
-const KnobHandle = styled.div<{ rotation: number }>`
-  position: absolute;
-  width: 70%;
-  height: 70%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(${(props) => props.rotation}deg);
   border-radius: 50%;
   background-color: ${COLORS.background.medium};
+  border: 2px solid ${COLORS.border};
   box-shadow: ${SHADOWS.knob};
-  transition: ${TRANSITIONS.fast};
-  cursor: pointer;
+  transform: rotate(${(props) => props.rotation}deg);
+  transition: transform 0.1s ease;
 
   &::after {
     content: "";
     position: absolute;
-    width: 3px;
-    height: 40%;
-    background-color: ${COLORS.text.primary};
+    top: 4px;
     left: 50%;
-    top: 8px;
-    margin-left: -1.5px;
-    border-radius: 1.5px;
-    box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+    width: 2px;
+    height: 12px;
+    background-color: ${COLORS.text.primary};
+    transform: translateX(-50%);
+  }
+
+  &:hover {
+    background-color: ${COLORS.background.light};
   }
 `;
 
-export const CircularKnob: React.FC<KnobProps> = ({
-  min = 0,
-  max = 100,
-  initialValue = 50,
-  size = 120,
-  knobColor = COLORS.background.medium,
-  backgroundColor = COLORS.background.dark,
-  tickColor = COLORS.control.tick,
-  valueColor = COLORS.text.muted,
-  minAngle = -135,
-  maxAngle = 135,
-  showTicks = true,
-  showMinMax = true,
-  showValue = true,
-  label = "",
-  onChange = () => {},
+const Label = styled.div`
+  font-family: ${FONTS.mono};
+  font-size: 0.75rem;
+  color: ${COLORS.text.muted};
+  text-align: center;
+`;
+
+const Value = styled.div`
+  font-family: ${FONTS.mono};
+  font-size: 0.875rem;
+  color: ${COLORS.text.primary};
+  text-align: center;
+`;
+
+export const CircularKnob: React.FC<CircularKnobProps> = ({
+  label,
+  min,
+  max,
+  initialValue,
+  onChange,
+  logScale = false,
 }) => {
   const knobRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const startYRef = useRef(0);
-  const startValueRef = useRef(initialValue);
-  const currentValueRef = useRef(initialValue);
-  const lastUpdateTimeRef = useRef(0);
-  const [rotation, setRotation] = useState(
-    normalize(initialValue, min, max, minAngle, maxAngle)
-  );
+  const startValueRef = useRef(0);
+  const [value, setValue] = useState(initialValue);
 
-  const handleValueChange = useCallback(
-    (clientY: number) => {
-      const deltaY = startYRef.current - clientY;
-      const sensitivity = (max - min) / 200;
-      const newValue = clamp(
-        startValueRef.current + deltaY * sensitivity,
-        min,
-        max
-      );
-
-      currentValueRef.current = newValue;
-      setRotation(normalize(newValue, min, max, minAngle, maxAngle));
-
-      const now = Date.now();
-      if (now - lastUpdateTimeRef.current > 33) {
-        lastUpdateTimeRef.current = now;
-        onChange(newValue);
-      }
+  const valueToRotation = useCallback(
+    (val: number) => {
+      const normalized = logScale
+        ? Math.log(val / min) / Math.log(max / min)
+        : (val - min) / (max - min);
+      return normalized * 270 - 135;
     },
-    [min, max, minAngle, maxAngle, onChange]
+    [min, max, logScale]
   );
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    isDraggingRef.current = true;
-    startYRef.current = e.clientY;
-    startValueRef.current = currentValueRef.current;
-    e.preventDefault();
-  }, []);
+  const rotationToValue = useCallback(
+    (rotation: number) => {
+      const normalized = (rotation + 135) / 270;
+      const val = logScale
+        ? min * Math.pow(max / min, normalized)
+        : min + normalized * (max - min);
+      return Math.max(min, Math.min(max, val));
+    },
+    [min, max, logScale]
+  );
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      isDraggingRef.current = true;
+      startYRef.current = e.clientY;
+      startValueRef.current = value;
+      e.preventDefault();
+    },
+    [value]
+  );
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (isDraggingRef.current) {
-        handleValueChange(e.clientY);
-      }
+      if (!isDraggingRef.current) return;
+
+      const deltaY = startYRef.current - e.clientY;
+      const sensitivity = 0.5;
+      const rotation =
+        valueToRotation(startValueRef.current) + deltaY * sensitivity;
+      const newValue = rotationToValue(rotation);
+
+      setValue(newValue);
+      onChange(newValue);
     },
-    [handleValueChange]
+    [valueToRotation, rotationToValue, onChange]
   );
 
   const handleMouseUp = useCallback(() => {
-    if (isDraggingRef.current) {
-      isDraggingRef.current = false;
-      onChange(currentValueRef.current);
-    }
-  }, [onChange]);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    isDraggingRef.current = true;
-    startYRef.current = e.touches[0].clientY;
-    startValueRef.current = currentValueRef.current;
-    e.preventDefault();
+    isDraggingRef.current = false;
   }, []);
-
-  const handleTouchMove = useCallback(
-    (e: TouchEvent) => {
-      if (isDraggingRef.current) {
-        handleValueChange(e.touches[0].clientY);
-      }
-    },
-    [handleValueChange]
-  );
 
   useEffect(() => {
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("touchmove", handleTouchMove, { passive: false });
-    document.addEventListener("touchend", handleMouseUp);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleMouseUp);
     };
-  }, [handleMouseMove, handleMouseUp, handleTouchMove]);
+  }, [handleMouseMove, handleMouseUp]);
 
-  const renderTicks = () => {
-    if (!showTicks) return null;
-
-    const ticks = [];
-    const tickCount = 11;
-
-    for (let i = 0; i < tickCount; i++) {
-      const angle = minAngle + (i / (tickCount - 1)) * (maxAngle - minAngle);
-      const radian = degreesToRadians(angle);
-      const isMainTick =
-        i === 0 || i === tickCount - 1 || i === Math.floor(tickCount / 2);
-      const tickLength = isMainTick ? 8 : 5;
-      const tickWidth = isMainTick ? 2 : 1;
-
-      const x1 = size / 2 + (size / 2 - 15) * Math.cos(radian);
-      const y1 = size / 2 + (size / 2 - 15) * Math.sin(radian);
-      const x2 = size / 2 + (size / 2 - 15 - tickLength) * Math.cos(radian);
-      const y2 = size / 2 + (size / 2 - 15 - tickLength) * Math.sin(radian);
-
-      ticks.push(
-        <line
-          key={i}
-          x1={x1}
-          y1={y1}
-          x2={x2}
-          y2={y2}
-          stroke={tickColor}
-          strokeWidth={tickWidth}
-        />
-      );
+  const formatValue = (val: number) => {
+    if (val >= 1000) {
+      return `${(val / 1000).toFixed(1)}k`;
     }
-
-    return ticks;
+    return val.toFixed(1);
   };
 
   return (
-    <KnobContainer>
-      {label && <KnobLabel>{label}</KnobLabel>}
-      <div
-        style={{
-          position: "relative",
-          width: size,
-          height: size,
-        }}
-      >
-        <KnobSvg width={size} height={size}>
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={size / 2 - 2}
-            fill={backgroundColor}
-            stroke={tickColor}
-            strokeWidth="1"
-          />
-          {renderTicks()}
-        </KnobSvg>
-
-        <KnobHandle
-          ref={knobRef}
-          rotation={rotation}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          style={{
-            backgroundColor: knobColor,
-          }}
-        />
-
-        {showMinMax && (
-          <>
-            <div
-              style={{
-                position: "absolute",
-                color: valueColor,
-                left: "10px",
-                bottom: "5px",
-                fontSize: "0.75rem",
-                fontFamily: FONTS.mono,
-              }}
-            >
-              {min}
-            </div>
-            <div
-              style={{
-                position: "absolute",
-                color: valueColor,
-                right: "10px",
-                bottom: "5px",
-                fontSize: "0.75rem",
-                fontFamily: FONTS.mono,
-              }}
-            >
-              {max}
-            </div>
-          </>
-        )}
-      </div>
-
-      {showValue && (
-        <KnobValue>{Math.round(currentValueRef.current)}</KnobValue>
-      )}
-    </KnobContainer>
+    <Container>
+      {label && <Label>{label}</Label>}
+      <KnobContainer ref={knobRef} onMouseDown={handleMouseDown}>
+        <Knob rotation={valueToRotation(value)} />
+      </KnobContainer>
+      <Value>{formatValue(value)}</Value>
+    </Container>
   );
 };

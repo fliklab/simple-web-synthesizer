@@ -1,115 +1,73 @@
-import { useState } from "react";
+import React from "react";
 import styled from "@emotion/styled";
-import { COLORS, SHADOWS, TRANSITIONS, FONTS } from "../../constants/styles";
-import type { WaveformSelectorProps } from "../../types/synth";
-import { DEFAULT_WAVEFORMS } from "../../constants/synth";
+import { COLORS, SHADOWS } from "../../constants/styles";
+import type { WaveformType, WaveformSelectorProps } from "../../types/synth";
 
 const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const Label = styled.div`
-  font-family: ${FONTS.mono};
-  font-size: 0.75rem;
-  color: ${COLORS.text.muted};
-  margin-bottom: 0.5rem;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: ${COLORS.background.dark};
+  border-radius: 4px;
 `;
 
 const WaveformButton = styled.button<{ isSelected: boolean }>`
-  position: relative;
-  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
   height: 40px;
   background-color: ${(props) =>
-    props.isSelected ? COLORS.primary : COLORS.control.inactive};
+    props.isSelected ? COLORS.primary : COLORS.background.medium};
   border-radius: 4px;
-  border: 2px solid ${COLORS.background.dark};
   box-shadow: ${(props) =>
     props.isSelected
       ? SHADOWS.button.active(COLORS.primary)
       : SHADOWS.button.inactive};
-  transition: ${TRANSITIONS.normal};
-  cursor: pointer;
-  outline: none;
+  transition: all 0.2s ease;
 
   &:hover {
-    transform: scale(1.02);
+    background-color: ${(props) =>
+      props.isSelected ? COLORS.primary : COLORS.background.light};
   }
 
-  &:active {
-    transform: scale(0.98);
+  svg {
+    width: 24px;
+    height: 24px;
+    stroke: ${COLORS.text.primary};
+    stroke-width: 2;
+    fill: none;
   }
 `;
 
-const WaveformPath = styled.path<{ isSelected: boolean }>`
-  fill: none;
-  stroke: ${(props) =>
-    props.isSelected ? COLORS.text.primary : COLORS.text.muted};
-  stroke-width: 2;
-`;
+const WAVEFORMS: WaveformType[] = ["sine", "square", "sawtooth", "triangle"];
 
 export const WaveformSelector: React.FC<WaveformSelectorProps> = ({
-  options = DEFAULT_WAVEFORMS,
-  initialValue = "sine",
-  onChange = () => {},
+  selected,
+  onChange,
 }) => {
-  const [selected, setSelected] = useState(initialValue);
-
-  const handleSelect = (option: (typeof options)[number]) => {
-    setSelected(option);
-    onChange(option);
-  };
-
-  const getWaveformPath = (type: (typeof options)[number]) => {
-    switch (type) {
-      case "sine":
-        return "M 0,15 Q 7.5,5 15,15 T 30,15";
-      case "triangle":
-        return "M 0,25 L 7.5,5 L 22.5,5 L 30,25";
-      case "sawtooth":
-        return "M 0,25 L 20,5 L 20,25 M 20,5 L 30,25";
-      case "square":
-        return "M 0,25 L 0,5 L 15,5 L 15,25 L 30,25";
-      default:
-        return "";
-    }
-  };
-
   return (
     <Container>
-      <Label>Waveform</Label>
-      <ButtonGroup>
-        {options.map((option) => (
-          <WaveformButton
-            key={option}
-            isSelected={selected === option}
-            onClick={() => handleSelect(option)}
-          >
-            <svg
-              width="30"
-              height="30"
-              viewBox="0 0 30 30"
-              style={{
-                position: "absolute",
-                inset: 0,
-                margin: "auto",
-                pointerEvents: "none",
-              }}
-            >
-              <WaveformPath
-                d={getWaveformPath(option)}
-                isSelected={selected === option}
-              />
-            </svg>
-          </WaveformButton>
-        ))}
-      </ButtonGroup>
+      {WAVEFORMS.map((type) => (
+        <WaveformButton
+          key={type}
+          isSelected={selected === type}
+          onClick={() => onChange(type)}
+          title={type.charAt(0).toUpperCase() + type.slice(1)}
+        >
+          <svg viewBox="0 0 40 40">
+            {type === "sine" && <path d="M 5,20 Q 15,5 20,20 Q 25,35 35,20" />}
+            {type === "square" && (
+              <path d="M 5,35 L 5,5 L 20,5 L 20,35 L 35,35 L 35,5" />
+            )}
+            {type === "sawtooth" && (
+              <path d="M 5,35 L 5,5 L 20,35 L 20,5 L 35,35 L 35,5" />
+            )}
+            {type === "triangle" && <path d="M 5,20 L 13,5 L 28,35 L 35,20" />}
+          </svg>
+        </WaveformButton>
+      ))}
     </Container>
   );
 };

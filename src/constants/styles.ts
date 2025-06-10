@@ -1,44 +1,32 @@
 export const COLORS = {
   primary: "#4a9eff",
-  secondary: "#ff9f4a",
-  tertiary: "#4aff9f",
+  secondary: "#ff4444",
+  tertiary: "#44ff44",
   background: {
     dark: "#1a1a1a",
     medium: "#2a2a2a",
-    light: "#333333",
+    light: "#3a3a3a",
   },
   text: {
     primary: "#ffffff",
-    secondary: "#dddddd",
-    muted: "#888888",
-  },
-  control: {
-    active: "#4a9eff",
-    inactive: "#444444",
-    track: "#222222",
-    tick: "#666666",
+    secondary: "#cccccc",
+    muted: "#999999",
   },
   border: "#444444",
+  control: {
+    inactive: "#666666",
+    active: "#4a9eff",
+    track: "#333333",
+    tick: "#555555",
+  },
 } as const;
 
 export const SHADOWS = {
-  knob: `
-    inset 0 2px 4px rgba(0,0,0,0.5),
-    0 2px 8px rgba(0,0,0,0.3),
-    0 0 0 1px rgba(255,255,255,0.1)
-  `,
-  slider: `
-    inset 0 2px 4px rgba(0,0,0,0.5),
-    0 1px 2px rgba(255,255,255,0.1)
-  `,
+  knob: "0 4px 8px rgba(0, 0, 0, 0.5)",
   button: {
-    active: (color: string) => `
-      inset 0 2px 4px rgba(0,0,0,0.3),
-      0 0 20px ${color}66
-    `,
-    inactive: `
-      inset 0 2px 4px rgba(0,0,0,0.5)
-    `,
+    inactive: "inset 0 2px 4px rgba(0, 0, 0, 0.5)",
+    active: (color: string) =>
+      `inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px ${color}66`,
   },
 } as const;
 

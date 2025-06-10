@@ -11,7 +11,7 @@ import { NoteButton } from "./controls/NoteButton";
 import { WaveformSelector } from "./controls/WaveformSelector";
 import { ADSRVisualizer } from "./visualizers/ADSRVisualizer";
 import { Oscilloscope } from "./visualizers/Oscilloscope";
-import type { SynthParams } from "../types/synth";
+import type { SynthParams, WaveformType, FilterType } from "../types/synth";
 
 const Container = styled.div`
   display: flex;
@@ -31,22 +31,46 @@ const Title = styled.h1`
   text-align: center;
 `;
 
-const Controls = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+const MainControls = styled.div`
+  display: flex;
   gap: 2rem;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1000px;
+  margin-bottom: 2rem;
+  justify-content: center;
+  align-items: center;
 `;
 
 const Section = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1rem;
-  padding: 1rem;
+  padding: 1.5rem;
   background-color: ${COLORS.background.medium};
   border-radius: 8px;
+`;
+
+const Section520 = styled(Section)`
+  min-height: 520px;
+`;
+
+const Row = styled.div`
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+`;
+
+const Column = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
 `;
 
 const SectionTitle = styled.h2`
@@ -54,162 +78,207 @@ const SectionTitle = styled.h2`
   font-size: 1rem;
   color: ${COLORS.text.secondary};
   margin-bottom: 1rem;
+  text-align: center;
 `;
 
-const Row = styled.div`
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-`;
+// const MainColumn = styled(Column)`
+//   display: flex;
+//   flex-direction: column;
+//   gap: 2rem;
+// `;
+
+// const SideColumn = styled(Column)`
+//   display: flex;
+//   flex-direction: column;
+//   gap: 2rem;
+// `;
 
 const KeyboardSection = styled(Section)`
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(13, 1fr);
   gap: 0.5rem;
   padding: 1rem;
 `;
 
-export const RetroSynth = () => {
-  const {
-    activeNotes,
-    analyser,
-    filterEnabled,
-    reverbEnabled,
-    playNote,
-    stopNote,
-    updateOscillator,
-    updateEnvelope,
-    updateVolume,
-    updateFilter,
-    updateFilterEnabled,
-    updateReverb,
-    updateReverbEnabled,
-  } = useSynth();
-
-  useKeyboard({
-    onNoteOn: playNote,
-    onNoteOff: stopNote,
-    activeNotes,
+export const RetroSynth: React.FC = () => {
+  const [synthParams, setSynthParams] = useState<SynthParams>({
+    oscillator: {
+      type: "sine",
+      volume: 0,
+    },
+    envelope: {
+      attack: 0.1,
+      decay: 0.2,
+      sustain: 0.5,
+      release: 0.5,
+    },
+    filter: {
+      frequency: 1000,
+      type: "lowpass",
+      Q: 1,
+    },
+    reverb: {
+      mix: 0,
+    },
   });
 
-  const [adsr, setADSR] = useState<SynthParams["envelope"]>({
-    attack: 0.1,
-    decay: 0.2,
-    sustain: 0.5,
-    release: 0.5,
-  });
+  const { synth, analyser } = useSynth(synthParams);
+  const { activeNotes } = useKeyboard(synth);
 
-  const handleADSRChange = (envelope: Partial<SynthParams["envelope"]>) => {
-    setADSR((prev) => ({ ...prev, ...envelope }));
-    updateEnvelope(envelope);
+  const handleOscillatorTypeChange = (type: WaveformType) => {
+    setSynthParams((prev) => ({
+      ...prev,
+      oscillator: { ...prev.oscillator, type },
+    }));
+  };
+
+  const handleVolumeChange = (volume: number) => {
+    setSynthParams((prev) => ({
+      ...prev,
+      oscillator: { ...prev.oscillator, volume },
+    }));
+  };
+
+  const handleEnvelopeChange = (param: string, value: number) => {
+    setSynthParams((prev) => ({
+      ...prev,
+      envelope: { ...prev.envelope, [param]: value },
+    }));
+  };
+
+  const handleFilterChange = (param: string, value: number | FilterType) => {
+    setSynthParams((prev) => ({
+      ...prev,
+      filter: { ...prev.filter, [param]: value },
+    }));
+  };
+
+  const handleReverbMixChange = (mix: number) => {
+    setSynthParams((prev) => ({
+      ...prev,
+      reverb: { ...prev.reverb, mix },
+    }));
   };
 
   return (
     <Container>
       <Title>Retro Synth</Title>
-      <Controls>
-        <Section>
-          <SectionTitle>Oscillator</SectionTitle>
-          <WaveformSelector onChange={updateOscillator} />
-          <CircularKnob
-            label="Volume"
-            min={-60}
-            max={0}
-            initialValue={-10}
-            onChange={updateVolume}
-          />
-        </Section>
+      <MainControls>
+        <Row>
+          <Section520>
+            <SectionTitle>Oscillator</SectionTitle>
+            <Column>
+              <WaveformSelector
+                selected={synthParams.oscillator.type}
+                onChange={handleOscillatorTypeChange}
+              />
+              <CircularKnob
+                label="Volume"
+                min={-60}
+                max={0}
+                initialValue={synthParams.oscillator.volume}
+                onChange={handleVolumeChange}
+              />
+            </Column>
+          </Section520>
+          <Section520>
+            <SectionTitle>Envelope</SectionTitle>
+            <Row>
+              <Column>
+                <ADSRVisualizer
+                  attack={synthParams.envelope.attack}
+                  decay={synthParams.envelope.decay}
+                  sustain={synthParams.envelope.sustain}
+                  release={synthParams.envelope.release}
+                  width={300}
+                  height={120}
+                />
+                <Row>
+                  <Slider
+                    label="Attack"
+                    min={0}
+                    max={2}
+                    initialValue={synthParams.envelope.attack}
+                    onChange={(value) => handleEnvelopeChange("attack", value)}
+                  />
+                  <Slider
+                    label="Decay"
+                    min={0}
+                    max={2}
+                    initialValue={synthParams.envelope.decay}
+                    onChange={(value) => handleEnvelopeChange("decay", value)}
+                  />
+                  <Slider
+                    label="Sustain"
+                    min={0}
+                    max={1}
+                    initialValue={synthParams.envelope.sustain}
+                    onChange={(value) => handleEnvelopeChange("sustain", value)}
+                  />
+                  <Slider
+                    label="Release"
+                    min={0}
+                    max={2}
+                    initialValue={synthParams.envelope.release}
+                    onChange={(value) => handleEnvelopeChange("release", value)}
+                  />
+                </Row>
+              </Column>
+            </Row>
+          </Section520>
 
-        <Section>
-          <SectionTitle>Envelope</SectionTitle>
-          <Row>
-            <Slider
-              label="Attack"
-              min={0}
-              max={2}
-              initialValue={0.1}
-              onChange={(value) => handleADSRChange({ attack: value })}
-            />
-            <Slider
-              label="Decay"
-              min={0}
-              max={2}
-              initialValue={0.2}
-              onChange={(value) => handleADSRChange({ decay: value })}
-            />
-          </Row>
-          <Row>
-            <Slider
-              label="Sustain"
-              min={0}
-              max={1}
-              initialValue={0.5}
-              onChange={(value) => handleADSRChange({ sustain: value })}
-            />
-            <Slider
-              label="Release"
-              min={0}
-              max={2}
-              initialValue={0.5}
-              onChange={(value) => handleADSRChange({ release: value })}
-            />
-          </Row>
-          <ADSRVisualizer
-            attack={adsr.attack}
-            decay={adsr.decay}
-            sustain={adsr.sustain}
-            release={adsr.release}
-          />
-        </Section>
-
-        <Section>
-          <SectionTitle>Filter</SectionTitle>
-          <CircularKnob
-            label="Frequency"
-            min={20}
-            max={20000}
-            initialValue={1000}
-            onChange={updateFilter}
-          />
-          <ToggleButton
-            label="Enable"
-            initialState={filterEnabled}
-            onColor={COLORS.secondary}
-            onChange={updateFilterEnabled}
-          />
-        </Section>
-
-        <Section>
-          <SectionTitle>Reverb</SectionTitle>
-          <CircularKnob
-            label="Mix"
-            min={0}
-            max={1}
-            initialValue={0.3}
-            onChange={updateReverb}
-          />
-          <ToggleButton
-            label="Enable"
-            initialState={reverbEnabled}
-            onColor={COLORS.tertiary}
-            onChange={updateReverbEnabled}
-          />
-        </Section>
-
-        <Section>
-          <SectionTitle>Output</SectionTitle>
-          <Oscilloscope analyser={analyser} />
-        </Section>
-      </Controls>
-
+          <Section520>
+            <SectionTitle>Filter</SectionTitle>
+            <Column>
+              <ToggleButton
+                label="LP/HP"
+                initialState={synthParams.filter.type === "highpass"}
+                onChange={(isHighPass) =>
+                  handleFilterChange(
+                    "type",
+                    isHighPass ? "highpass" : "lowpass"
+                  )
+                }
+              />
+              <CircularKnob
+                label="Frequency"
+                min={20}
+                max={20000}
+                initialValue={synthParams.filter.frequency}
+                onChange={(value) => handleFilterChange("frequency", value)}
+                logScale
+              />
+              <CircularKnob
+                label="Q"
+                min={0.1}
+                max={10}
+                initialValue={synthParams.filter.Q}
+                onChange={(value) => handleFilterChange("Q", value)}
+              />
+            </Column>
+          </Section520>
+          <Section520>
+            <SectionTitle>Output</SectionTitle>
+            <Column>
+              <Oscilloscope analyser={analyser} width={200} height={80} />
+              <CircularKnob
+                label="Reverb"
+                min={0}
+                max={1}
+                initialValue={synthParams.reverb.mix}
+                onChange={handleReverbMixChange}
+              />
+            </Column>
+          </Section520>
+        </Row>
+      </MainControls>
       <KeyboardSection>
         {NOTES.map((note) => (
           <NoteButton
             key={note}
             note={note}
             isPressed={activeNotes.has(note)}
-            onNoteOn={playNote}
-            onNoteOff={stopNote}
           />
         ))}
       </KeyboardSection>

@@ -1,10 +1,26 @@
 import type { KeyboardMap, WaveformType } from "../types/synth";
 
-export const DEFAULT_WAVEFORMS: WaveformType[] = [
+export const NOTES = [
+  "C4",
+  "C#4",
+  "D4",
+  "D#4",
+  "E4",
+  "F4",
+  "F#4",
+  "G4",
+  "G#4",
+  "A4",
+  "A#4",
+  "B4",
+  "C5",
+];
+
+export const WAVEFORMS: WaveformType[] = [
   "sine",
-  "triangle",
-  "sawtooth",
   "square",
+  "sawtooth",
+  "triangle",
 ];
 
 export const DEFAULT_SYNTH_PARAMS = {
@@ -47,5 +63,3 @@ export const KEYBOARD_MAP: KeyboardMap = {
   p: "D#5",
   ";": "E5",
 };
-
-export const NOTES = ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"];
