@@ -279,6 +279,8 @@ export const RetroSynth: React.FC = () => {
             key={note}
             note={note}
             isPressed={activeNotes.has(note)}
+            onNoteOn={() => synth?.triggerAttack(note)}
+            onNoteOff={() => synth?.triggerRelease(note)}
           />
         ))}
       </KeyboardSection>
