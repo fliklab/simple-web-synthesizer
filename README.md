@@ -1,54 +1,53 @@
-# React + TypeScript + Vite
+# Simple Synthesizer 🎹
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+웹 브라우저에서 동작하는 간단한 신디사이저 애플리케이션입니다.
+실시간 음향 합성을 통해 음악을 연주할 수 있습니다.
 
-Currently, two official plugins are available:
+## 주요 기능 🎵
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Waveform 선택(Sine, Square, Sawtooth, Triangle)
+- ADSR Envelope, LP/HP Filter, Reverb
+- 생성되는 음향의 파형을 실시간으로 시각화합니다,
+- 키보드를 활용하여 연주할 수 있습니다.
 
-## Expanding the ESLint configuration
+## 기술 스택 💻
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React, TypeScript, Web Audio API(Tone.js), Vite, PNPM
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 시작하기 🚀
+
+### 설치 방법
+
+```bash
+# 저장소 클론
+git clone https://github.com/fliklab/simple-web-synthesizer.git
+
+# 프로젝트 디렉토리로 이동
+cd simple-web-synthesizer
+
+# 의존성 설치
+pnpm install
+
+# 개발 서버 실행
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 프로젝트 구조 📁
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
 ```
+simple-synthesizer/
+├── src/
+│   ├── components/     # UI 컴포넌트
+│   │   ├── controls/   # 신디사이저 컨트롤 컴포넌트
+│   │   └── visualizers/# 오디오 시각화 컴포넌트
+│   ├── hooks/         # 커스텀 훅
+│   ├── utils/         # 유틸리티 함수
+│   ├── constants/     # 상수 정의
+│   ├── types/         # TypeScript 타입 정의
+│   └── styles/        # 스타일 파일
+└── public/            # 정적 파일
+```
+
+## 라이선스
+
+이 프로젝트는 MIT 라이선스로 배포됩니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
