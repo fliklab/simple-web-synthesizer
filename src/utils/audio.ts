@@ -108,7 +108,7 @@ export const createSynth = (params: SynthParams): Tone.PolySynth => {
     },
   });
 
-  synth.volume.value = params.volume;
+  synth.volume.value = params.oscillator.volume;
   return synth;
 };
 

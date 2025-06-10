@@ -7,6 +7,7 @@ export const useSynth = (params: SynthParams) => {
   const filterRef = useRef<Tone.Filter | null>(null);
   const reverbRef = useRef<Tone.Reverb | null>(null);
   const analyserRef = useRef<Tone.Analyser | null>(null);
+  const limiterRef = useRef<Tone.Limiter | null>(null);
 
   useEffect(() => {
     // Initialize audio nodes
@@ -39,17 +40,23 @@ export const useSynth = (params: SynthParams) => {
       size: 128,
     });
 
+    limiterRef.current = new Tone.Limiter({
+      threshold: -6, // dB
+    });
+
     // Connect audio nodes
     if (
       synthRef.current &&
       filterRef.current &&
       reverbRef.current &&
-      analyserRef.current
+      analyserRef.current &&
+      limiterRef.current
     ) {
       synthRef.current.connect(filterRef.current);
       filterRef.current.connect(reverbRef.current);
       reverbRef.current.connect(analyserRef.current);
-      analyserRef.current.toDestination();
+      analyserRef.current.connect(limiterRef.current);
+      limiterRef.current.toDestination();
     }
 
     // Set initial volume
@@ -62,6 +69,7 @@ export const useSynth = (params: SynthParams) => {
       if (filterRef.current) filterRef.current.dispose();
       if (reverbRef.current) reverbRef.current.dispose();
       if (analyserRef.current) analyserRef.current.dispose();
+      if (limiterRef.current) limiterRef.current.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -125,6 +133,7 @@ export const useSynth = (params: SynthParams) => {
   return {
     synth: synthRef.current,
     analyser: analyserRef.current,
+    limiter: limiterRef.current,
     playNote,
     stopNote,
   };
