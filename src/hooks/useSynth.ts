@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
 import type { SynthParams } from "../types/synth";
 
@@ -64,6 +64,18 @@ export const useSynth = (params: SynthParams) => {
       synthRef.current.volume.value = params.oscillator.volume;
     }
 
+    // 디버깅을 위한 오디오 그래프 연결 상태 확인
+    console.log("🎵 오디오 그래프 초기화 완료");
+    console.log("📊 AudioContext 상태:", Tone.getContext().state);
+    console.log("🔗 오디오 노드 연결:", {
+      synth: !!synthRef.current,
+      filter: !!filterRef.current,
+      reverb: !!reverbRef.current,
+      analyser: !!analyserRef.current,
+      limiter: !!limiterRef.current,
+      destination: "toDestination() 연결됨",
+    });
+
     return () => {
       if (synthRef.current) synthRef.current.dispose();
       if (filterRef.current) filterRef.current.dispose();
@@ -118,17 +130,47 @@ export const useSynth = (params: SynthParams) => {
     });
   }, [params.reverb.mix]);
 
-  const playNote = (note: string) => {
+  const playNote = useCallback(async (note: string) => {
+    // AudioContext 상태 확인 및 활성화
+    if (Tone.getContext().state === "suspended") {
+      console.log("⚠️ AudioContext가 suspended 상태입니다. 활성화 시도 중...");
+      try {
+        await Tone.start();
+        console.log("✅ AudioContext가 활성화되었습니다.");
+      } catch (error) {
+        console.error("❌ AudioContext 활성화 실패:", error);
+        return;
+      }
+    }
+
     if (synthRef.current) {
+      console.log(
+        "🎹 노트 재생:",
+        note,
+        "AudioContext 상태:",
+        Tone.getContext().state
+      );
       synthRef.current.triggerAttack(note);
     }
-  };
+  }, []);
 
-  const stopNote = (note: string) => {
+  const stopNote = useCallback((note: string) => {
     if (synthRef.current) {
+      console.log("🎹 노트 정지:", note);
       synthRef.current.triggerRelease(note);
     }
-  };
+  }, []);
+
+  const getAudioInfo = useCallback(() => {
+    const context = Tone.getContext();
+    return {
+      contextState: context.state,
+      sampleRate: context.sampleRate,
+      currentTime: context.currentTime,
+      destination: context.destination,
+      isConnected: !!(synthRef.current && limiterRef.current),
+    };
+  }, []);
 
   return {
     synth: synthRef.current,
@@ -136,5 +178,6 @@ export const useSynth = (params: SynthParams) => {
     limiter: limiterRef.current,
     playNote,
     stopNote,
+    getAudioInfo,
   };
 };
