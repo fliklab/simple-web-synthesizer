@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { COLORS, SHADOWS } from "../../constants/styles";
 
-const Button = styled.button<{ isOn: boolean }>`
+const Button = styled.button<{ isOn: boolean; size: number }>`
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: ${(props) => props.size}px;
+  height: ${(props) => props.size}px;
   background-color: ${(props) =>
     props.isOn ? COLORS.primary : COLORS.background.medium};
   border-radius: 8px;
@@ -28,14 +28,14 @@ const Button = styled.button<{ isOn: boolean }>`
   }
 `;
 
-const Label = styled.div`
+const Label = styled.div<{ size: number }>`
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: "Space Mono", monospace;
-  font-size: 0.875rem;
+  font-size: ${(props) => props.size}px;
   color: ${COLORS.text.primary};
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -59,12 +59,19 @@ const Highlight = styled.div`
 
 interface ToggleButtonProps {
   label: string;
+  size?: number;
+  fontSize?: number;
+  onColor?: string;
+  offColor?: string;
+  labelColor?: string;
   initialState?: boolean;
   onChange?: (state: boolean) => void;
 }
 
 export const ToggleButton: React.FC<ToggleButtonProps> = ({
   label,
+  size = 60,
+  fontSize,
   initialState = false,
   onChange = () => {},
 }) => {
@@ -77,9 +84,9 @@ export const ToggleButton: React.FC<ToggleButtonProps> = ({
   };
 
   return (
-    <Button isOn={isOn} onClick={handleClick}>
+    <Button isOn={isOn} onClick={handleClick} size={size}>
       <Highlight />
-      <Label>{label}</Label>
+      <Label size={fontSize ?? size / 3}>{label}</Label>
     </Button>
   );
 };

@@ -4,13 +4,13 @@ import { COLORS, SHADOWS, FONTS } from "../constants/styles";
 import { NOTES } from "../constants/synth";
 import { useSynth } from "../hooks/useSynth";
 import { useKeyboard } from "../hooks/useKeyboard";
-import { CircularKnob } from "./controls/CircularKnob";
-import Slider from "./controls/Slider";
-import { ToggleButton } from "./controls/ToggleButton";
-import { NoteButton } from "./controls/NoteButton";
-import { WaveformSelector } from "./controls/WaveformSelector";
-import { ADSRVisualizer } from "./visualizers/ADSRVisualizer";
-import { Oscilloscope } from "./visualizers/Oscilloscope";
+import { CircularKnob } from "../components/controls/CircularKnob";
+import Slider from "../components/controls/Slider";
+import { ToggleButton } from "../components/controls/ToggleButton";
+import { NoteButton } from "../components/controls/NoteButton";
+import { WaveformSelector } from "../components/controls/WaveformSelector";
+import { ADSRVisualizer } from "../components/visualizers/ADSRVisualizer";
+import { Oscilloscope } from "../components/visualizers/Oscilloscope";
 import type { SynthParams, WaveformType, FilterType } from "../types/synth";
 
 const Container = styled.div`

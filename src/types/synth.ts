@@ -120,9 +120,11 @@ export type KeyboardMap = {
 
 export interface CircularKnobProps {
   label: string;
+  size?: number;
   min: number;
   max: number;
   initialValue: number;
+  indicatorColor?: string;
   onChange: (value: number) => void;
   logScale?: boolean;
 }

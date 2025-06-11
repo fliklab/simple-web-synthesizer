@@ -4,12 +4,17 @@ import { COLORS, SHADOWS } from "../../constants/styles";
 import type { WaveformType, WaveformSelectorProps } from "../../types/synth";
 
 const Container = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: ${COLORS.background.dark};
+`;
+const InnerContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
-  padding: 0.5rem;
-  background-color: ${COLORS.background.dark};
-  border-radius: 4px;
 `;
 
 const WaveformButton = styled.button<{ isSelected: boolean }>`
@@ -49,25 +54,31 @@ export const WaveformSelector: React.FC<WaveformSelectorProps> = ({
 }) => {
   return (
     <Container>
-      {WAVEFORMS.map((type) => (
-        <WaveformButton
-          key={type}
-          isSelected={selected === type}
-          onClick={() => onChange(type)}
-          title={type.charAt(0).toUpperCase() + type.slice(1)}
-        >
-          <svg viewBox="0 0 40 40">
-            {type === "sine" && <path d="M 5,20 Q 15,5 20,20 Q 25,35 35,20" />}
-            {type === "square" && (
-              <path d="M 5,35 L 5,5 L 20,5 L 20,35 L 35,35 L 35,5" />
-            )}
-            {type === "sawtooth" && (
-              <path d="M 5,35 L 5,5 L 20,35 L 20,5 L 35,35 L 35,5" />
-            )}
-            {type === "triangle" && <path d="M 5,20 L 13,5 L 28,35 L 35,20" />}
-          </svg>
-        </WaveformButton>
-      ))}
+      <InnerContainer>
+        {WAVEFORMS.map((type) => (
+          <WaveformButton
+            key={type}
+            isSelected={selected === type}
+            onClick={() => onChange(type)}
+            title={type.charAt(0).toUpperCase() + type.slice(1)}
+          >
+            <svg viewBox="0 0 40 40">
+              {type === "sine" && (
+                <path d="M 5,20 Q 15,5 20,20 Q 25,35 35,20" />
+              )}
+              {type === "square" && (
+                <path d="M 5,35 L 5,5 L 20,5 L 20,35 L 35,35 L 35,5" />
+              )}
+              {type === "sawtooth" && (
+                <path d="M 5,35 L 5,5 L 20,35 L 20,5 L 35,35 L 35,5" />
+              )}
+              {type === "triangle" && (
+                <path d="M 5,20 L 13,5 L 28,35 L 35,20" />
+              )}
+            </svg>
+          </WaveformButton>
+        ))}
+      </InnerContainer>
     </Container>
   );
 };

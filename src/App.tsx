@@ -1,8 +1,8 @@
-import { RetroSynth } from "./components/RetroSynth";
+import SampleSynth from "./models/SampleSynth";
 import "./App.css";
 
 export function App() {
-  return <RetroSynth />;
+  return <SampleSynth />;
 }
 
 export default App;

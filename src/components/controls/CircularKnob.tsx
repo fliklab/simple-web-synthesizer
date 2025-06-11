@@ -10,14 +10,14 @@ const Container = styled.div`
   gap: 0.5rem;
 `;
 
-const KnobContainer = styled.div`
+const KnobContainer = styled.div<{ size: number }>`
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: ${({ size }) => size}px;
+  height: ${({ size }) => size}px;
   cursor: pointer;
 `;
 
-const Knob = styled.div<{ rotation: number }>`
+const Knob = styled.div<{ rotation: number; indicatorColor: string }>`
   position: absolute;
   inset: 0;
   border-radius: 50%;
@@ -34,7 +34,7 @@ const Knob = styled.div<{ rotation: number }>`
     left: 50%;
     width: 2px;
     height: 12px;
-    background-color: ${COLORS.text.primary};
+    background-color: ${({ indicatorColor }) => indicatorColor};
     transform: translateX(-50%);
   }
 
@@ -58,10 +58,12 @@ const Value = styled.div`
 `;
 
 export const CircularKnob: React.FC<CircularKnobProps> = ({
-  label,
+  label = "",
+  size = 60,
   min,
   max,
   initialValue,
+  indicatorColor = COLORS.text.primary,
   onChange,
   logScale = false,
 }) => {
@@ -107,7 +109,7 @@ export const CircularKnob: React.FC<CircularKnobProps> = ({
       if (!isDraggingRef.current) return;
 
       const deltaY = startYRef.current - e.clientY;
-      const sensitivity = 0.5;
+      const sensitivity = 1;
       const rotation =
         valueToRotation(startValueRef.current) + deltaY * sensitivity;
       const newValue = rotationToValue(rotation);
@@ -142,8 +144,11 @@ export const CircularKnob: React.FC<CircularKnobProps> = ({
   return (
     <Container>
       {label && <Label>{label}</Label>}
-      <KnobContainer ref={knobRef} onMouseDown={handleMouseDown}>
-        <Knob rotation={valueToRotation(value)} />
+      <KnobContainer ref={knobRef} onMouseDown={handleMouseDown} size={size}>
+        <Knob
+          rotation={valueToRotation(value)}
+          indicatorColor={indicatorColor}
+        />
       </KnobContainer>
       <Value>{formatValue(value)}</Value>
     </Container>
