@@ -111,6 +111,7 @@ export const NoteButton: React.FC<NoteButtonProps> = ({
       onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
       <Label labelColor={labelColor}>{note}</Label>
       <Highlight isActive={isActive} />

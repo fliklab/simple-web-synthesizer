@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { COLORS, FONTS } from "../../constants/styles";
+import { lockBodyScroll, unlockBodyScroll } from "../../utils/lockBodyScroll";
 
 const Button = styled.button<{ isEnabled: boolean }>`
   background: ${({ isEnabled }) =>
@@ -80,6 +81,12 @@ export const AudioEnableButton: React.FC<AudioEnableButtonProps> = ({
         isEnabled={isAudioEnabled}
         onClick={onEnableAudio}
         disabled={isLoading}
+        onMouseDown={lockBodyScroll}
+        onMouseUp={unlockBodyScroll}
+        onMouseLeave={unlockBodyScroll}
+        onTouchStart={lockBodyScroll}
+        onTouchEnd={unlockBodyScroll}
+        onTouchCancel={unlockBodyScroll}
       >
         {getButtonText()}
       </Button>

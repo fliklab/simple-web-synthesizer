@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { COLORS, SHADOWS, FONTS } from "../../constants/styles";
 import type { CircularKnobProps } from "../../types/synth";
+import { lockBodyScroll, unlockBodyScroll } from "../../utils/lockBodyScroll";
 
 const Container = styled.div`
   display: flex;
@@ -99,6 +100,7 @@ export const CircularKnob: React.FC<CircularKnobProps> = ({
       isDraggingRef.current = true;
       startYRef.current = e.clientY;
       startValueRef.current = value;
+      lockBodyScroll();
       e.preventDefault();
     },
     [value]
@@ -122,17 +124,61 @@ export const CircularKnob: React.FC<CircularKnobProps> = ({
 
   const handleMouseUp = useCallback(() => {
     isDraggingRef.current = false;
+    unlockBodyScroll();
+  }, []);
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      e.preventDefault();
+      isDraggingRef.current = true;
+      startYRef.current = e.touches[0].clientY;
+      startValueRef.current = value;
+      lockBodyScroll();
+    },
+    [value]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (!isDraggingRef.current) return;
+      e.preventDefault();
+      const deltaY = startYRef.current - e.touches[0].clientY;
+      const sensitivity = 1;
+      const rotation =
+        valueToRotation(startValueRef.current) + deltaY * sensitivity;
+      const newValue = rotationToValue(rotation);
+      setValue(newValue);
+      onChange(newValue);
+    },
+    [valueToRotation, rotationToValue, onChange]
+  );
+
+  const handleTouchEnd = useCallback((e: TouchEvent) => {
+    e.preventDefault();
+    isDraggingRef.current = false;
+    unlockBodyScroll();
   }, []);
 
   useEffect(() => {
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
 
+    const knob = knobRef.current;
+    if (!knob) return;
+    knob.addEventListener("touchmove", handleTouchMove, { passive: false });
+    knob.addEventListener("touchend", handleTouchEnd, { passive: false });
+    knob.addEventListener("touchcancel", handleTouchEnd, { passive: false });
+
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      knob.removeEventListener("touchmove", handleTouchMove);
+      knob.removeEventListener("touchend", handleTouchEnd);
+      knob.removeEventListener("touchcancel", handleTouchEnd);
+      unlockBodyScroll();
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
   const formatValue = (val: number) => {
     if (val >= 1000) {
@@ -144,7 +190,12 @@ export const CircularKnob: React.FC<CircularKnobProps> = ({
   return (
     <Container>
       {label && <Label>{label}</Label>}
-      <KnobContainer ref={knobRef} onMouseDown={handleMouseDown} size={size}>
+      <KnobContainer
+        ref={knobRef}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        size={size}
+      >
         <Knob
           rotation={valueToRotation(value)}
           indicatorColor={indicatorColor}

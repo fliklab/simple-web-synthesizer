@@ -10,9 +10,11 @@ import { NoteButton } from "../components/controls/NoteButton";
 import { ADSRVisualizer } from "../components/visualizers/ADSRVisualizer";
 import { AudioEnableButton } from "../components/controls/AudioEnableButton";
 import { useAudioContext } from "../hooks/useAudioContext";
+import { usePreventPinchZoom } from "../hooks/usePreventPinchZoom";
 
 // Main Synthesizer Component
 export default function SampleSynth() {
+  usePreventPinchZoom();
   const synthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
   const filterRef = useRef<Tone.Filter | null>(null);
   const reverbRef = useRef<Tone.Reverb | null>(null);
