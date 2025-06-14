@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { COLORS } from "../../constants/styles";
+import { lockBodyScroll, unlockBodyScroll } from "../../utils/lockBodyScroll";
 
 const SliderContainer = styled.div<{ width: number; height: number }>`
   position: relative;
@@ -151,6 +152,7 @@ export default function Slider({
     (e: React.MouseEvent) => {
       isDraggingRef.current = true;
       handleValueChange(orientation === "horizontal" ? e.clientX : e.clientY);
+      lockBodyScroll();
       e.preventDefault();
     },
     [handleValueChange, orientation]
@@ -170,18 +172,75 @@ export default function Slider({
       isDraggingRef.current = false;
       setInternalValue(currentValueRef.current);
       onChange(currentValueRef.current);
+      unlockBodyScroll();
     }
   }, [onChange]);
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      e.preventDefault();
+      isDraggingRef.current = true;
+      handleValueChange(
+        orientation === "horizontal"
+          ? e.touches[0].clientX
+          : e.touches[0].clientY
+      );
+      lockBodyScroll();
+    },
+    [handleValueChange, orientation]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (!isDraggingRef.current) return;
+      e.preventDefault();
+      handleValueChange(
+        orientation === "horizontal"
+          ? e.touches[0].clientX
+          : e.touches[0].clientY
+      );
+    },
+    [handleValueChange, orientation]
+  );
+
+  const handleTouchEnd = useCallback(
+    (e: TouchEvent) => {
+      e.preventDefault();
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        setInternalValue(currentValueRef.current);
+        onChange(currentValueRef.current);
+        unlockBodyScroll();
+      }
+    },
+    [onChange]
+  );
 
   useEffect(() => {
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
 
+    const slider = sliderRef.current;
+    if (slider) {
+      slider.addEventListener("touchmove", handleTouchMove, { passive: false });
+      slider.addEventListener("touchend", handleTouchEnd, { passive: false });
+      slider.addEventListener("touchcancel", handleTouchEnd, {
+        passive: false,
+      });
+    }
+
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      if (slider) {
+        slider.removeEventListener("touchmove", handleTouchMove);
+        slider.removeEventListener("touchend", handleTouchEnd);
+        slider.removeEventListener("touchcancel", handleTouchEnd);
+      }
+      unlockBodyScroll();
     };
-  }, [handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
   const width = orientation === "horizontal" ? length : thickness;
   const height = orientation === "horizontal" ? thickness : length;
@@ -198,6 +257,7 @@ export default function Slider({
         width={width}
         height={height}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
       >
         <SliderTrack
           orientation={orientation}

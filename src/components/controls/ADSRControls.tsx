@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { COLORS } from "../../constants/styles";
+import { lockBodyScroll, unlockBodyScroll } from "../../utils/lockBodyScroll";
 
 interface ADSRControlsProps {
   attack: number;
@@ -86,6 +87,9 @@ export const ADSRControls: React.FC<ADSRControlsProps> = ({
           step="0.01"
           value={attack}
           onChange={(e) => onAttackChange(parseFloat(e.target.value))}
+          onPointerDown={lockBodyScroll}
+          onPointerUp={unlockBodyScroll}
+          onPointerCancel={unlockBodyScroll}
         />
         <Value>{attack.toFixed(2)}s</Value>
       </ControlGroup>
@@ -99,6 +103,9 @@ export const ADSRControls: React.FC<ADSRControlsProps> = ({
           step="0.01"
           value={decay}
           onChange={(e) => onDecayChange(parseFloat(e.target.value))}
+          onPointerDown={lockBodyScroll}
+          onPointerUp={unlockBodyScroll}
+          onPointerCancel={unlockBodyScroll}
         />
         <Value>{decay.toFixed(2)}s</Value>
       </ControlGroup>
@@ -112,6 +119,9 @@ export const ADSRControls: React.FC<ADSRControlsProps> = ({
           step="0.01"
           value={sustain}
           onChange={(e) => onSustainChange(parseFloat(e.target.value))}
+          onPointerDown={lockBodyScroll}
+          onPointerUp={unlockBodyScroll}
+          onPointerCancel={unlockBodyScroll}
         />
         <Value>{(sustain * 100).toFixed(0)}%</Value>
       </ControlGroup>
@@ -125,6 +135,9 @@ export const ADSRControls: React.FC<ADSRControlsProps> = ({
           step="0.01"
           value={release}
           onChange={(e) => onReleaseChange(parseFloat(e.target.value))}
+          onPointerDown={lockBodyScroll}
+          onPointerUp={unlockBodyScroll}
+          onPointerCancel={unlockBodyScroll}
         />
         <Value>{release.toFixed(2)}s</Value>
       </ControlGroup>

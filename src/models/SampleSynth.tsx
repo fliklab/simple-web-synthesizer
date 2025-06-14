@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import type { WaveformType } from "../types/synth";
 import * as Tone from "tone";
 import { CircularKnob } from "../components/controls/CircularKnob";
@@ -8,13 +8,21 @@ import { Oscilloscope } from "../components/visualizers/Oscilloscope";
 import Slider from "../components/controls/Slider";
 import { NoteButton } from "../components/controls/NoteButton";
 import { ADSRVisualizer } from "../components/visualizers/ADSRVisualizer";
+import { AudioEnableButton } from "../components/controls/AudioEnableButton";
+import { useAudioContext } from "../hooks/useAudioContext";
+import { usePreventPinchZoom } from "../hooks/usePreventPinchZoom";
 
 // Main Synthesizer Component
 export default function SampleSynth() {
+  usePreventPinchZoom();
   const synthRef = useRef<Tone.PolySynth<Tone.Synth> | null>(null);
   const filterRef = useRef<Tone.Filter | null>(null);
   const reverbRef = useRef<Tone.Reverb | null>(null);
   const analyserRef = useRef<Tone.Analyser | null>(null);
+
+  // Audio Context 상태 관리
+  const { isAudioEnabled, contextState, enableAudio } = useAudioContext();
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
 
   const [volume, setVolume] = useState(-10);
   const [filterFreq, setFilterFreq] = useState(1000);
@@ -46,6 +54,10 @@ export default function SampleSynth() {
     analyserRef.current.toDestination();
 
     synthRef.current.volume.value = volume;
+
+    // 오디오 그래프 디버깅 정보
+    console.log("🎵 오디오 그래프 초기화 완료");
+    console.log("📊 초기 AudioContext 상태:", Tone.getContext().state);
 
     return () => {
       synthRef.current?.dispose();
@@ -125,10 +137,41 @@ export default function SampleSynth() {
     }
   };
 
+  const handleEnableAudio = async () => {
+    setIsAudioLoading(true);
+    try {
+      await enableAudio();
+      console.log("✅ 사용자 제스처로 오디오 활성화 완료");
+    } catch (error) {
+      console.error("❌ 오디오 활성화 실패:", error);
+    } finally {
+      setIsAudioLoading(false);
+    }
+  };
+
   const playNote = async (note: string) => {
-    await Tone.start();
-    synthRef.current?.triggerAttack(note);
-    setActiveNotes((prev) => new Set(prev).add(note));
+    // AudioContext가 suspended 상태면 먼저 활성화 시도
+    if (Tone.getContext().state === "suspended") {
+      console.log("⚠️ AudioContext가 suspended 상태입니다. 활성화 시도 중...");
+      try {
+        await Tone.start();
+        console.log("✅ AudioContext 자동 활성화 성공");
+      } catch (error) {
+        console.error("❌ AudioContext 자동 활성화 실패:", error);
+        return;
+      }
+    }
+
+    if (synthRef.current) {
+      console.log(
+        "🎹 노트 재생:",
+        note,
+        "AudioContext 상태:",
+        Tone.getContext().state
+      );
+      synthRef.current.triggerAttack(note);
+      setActiveNotes((prev) => new Set(prev).add(note));
+    }
   };
 
   const stopNote = (note: string) => {
@@ -216,6 +259,18 @@ export default function SampleSynth() {
         >
           Web Synth
         </h1>
+
+        {/* Audio Enable Button - 모바일에서 오디오 활성화 */}
+        {!isAudioEnabled && (
+          <div style={{ marginBottom: "1rem", textAlign: "center" }}>
+            <AudioEnableButton
+              isAudioEnabled={isAudioEnabled}
+              contextState={contextState}
+              onEnableAudio={handleEnableAudio}
+              isLoading={isAudioLoading}
+            />
+          </div>
+        )}
 
         <div
           style={{
@@ -462,6 +517,63 @@ export default function SampleSynth() {
               keys)
             </div>
           </div>
+
+          {/* Audio Debug Info - 개발 중 디버깅용 */}
+          {process.env.NODE_ENV === "development" && (
+            <div
+              style={{
+                gridColumn: "span 12",
+                backgroundColor: "#0a0a0a",
+                padding: "0.5rem",
+                borderRadius: "0.25rem",
+                marginTop: "1rem",
+              }}
+            >
+              <h3
+                style={{
+                  color: "#888888",
+                  fontSize: "0.75rem",
+                  fontFamily: "monospace",
+                  marginBottom: "0.25rem",
+                }}
+              >
+                🔧 오디오 디버그 정보
+              </h3>
+              <div
+                style={{
+                  color: "#cccccc",
+                  fontSize: "0.7rem",
+                  fontFamily: "monospace",
+                  lineHeight: 1.4,
+                }}
+              >
+                <div>AudioContext 상태: {contextState || "확인 중"}</div>
+                <div>오디오 활성화: {isAudioEnabled ? "✅ Yes" : "❌ No"}</div>
+                <div>샘플레이트: {Tone.getContext().sampleRate}Hz</div>
+                <div>
+                  현재 시간: {Tone.getContext().currentTime.toFixed(2)}초
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* 안내 문구: 진동모드 안내 */}
+        <div
+          style={{
+            width: "100%",
+            textAlign: "center",
+            color: "#ff4444",
+            fontFamily: "monospace",
+            fontSize: "0.95rem",
+            marginTop: "2.5rem",
+            marginBottom: "1.5rem",
+            letterSpacing: "0.01em",
+          }}
+        >
+          ※ iOS/안드로이드 기기에서 진동모드(무음모드)일 때는 소리가 정상적으로
+          재생되지 않을 수 있습니다.
+          <br />
+          소리가 나지 않을 경우, 기기의 무음모드를 해제해 주세요.
         </div>
       </div>
     </div>
