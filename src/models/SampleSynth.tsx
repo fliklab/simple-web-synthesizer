@@ -557,6 +557,24 @@ export default function SampleSynth() {
             </div>
           )}
         </div>
+        {/* 안내 문구: 진동모드 안내 */}
+        <div
+          style={{
+            width: "100%",
+            textAlign: "center",
+            color: "#ff4444",
+            fontFamily: "monospace",
+            fontSize: "0.95rem",
+            marginTop: "2.5rem",
+            marginBottom: "1.5rem",
+            letterSpacing: "0.01em",
+          }}
+        >
+          ※ iOS/안드로이드 기기에서 진동모드(무음모드)일 때는 소리가 정상적으로
+          재생되지 않을 수 있습니다.
+          <br />
+          소리가 나지 않을 경우, 기기의 무음모드를 해제해 주세요.
+        </div>
       </div>
     </div>
   );
