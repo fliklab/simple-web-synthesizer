@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import type { WaveformType } from "../types/synth";
 import * as Tone from "tone";
 import { CircularKnob } from "../components/controls/CircularKnob";

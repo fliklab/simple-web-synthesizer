@@ -101,7 +101,7 @@ const KeyboardSection = styled(Section)`
   padding: 1rem;
 `;
 
-export const RetroSynth: React.FC = () => {
+const RetroSynth: React.FC = () => {
   const [synthParams, setSynthParams] = useState<SynthParams>({
     oscillator: {
       type: "sine",
@@ -287,3 +287,5 @@ export const RetroSynth: React.FC = () => {
     </Container>
   );
 };
+
+export default RetroSynth;
