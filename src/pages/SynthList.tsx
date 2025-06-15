@@ -1,50 +1,70 @@
 import { useNavigate } from "react-router-dom";
+import styled from "@emotion/styled";
+import { keyframes } from "@emotion/react";
+import { COLORS, TRANSITIONS } from "../constants/styles";
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #181818;
+  color: #fff;
+`;
+
+const Title = styled.h1`
+  font-size: 32px;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: ${fadeIn} 0.8s ${TRANSITIONS.normal} forwards;
+  animation-delay: 0.1s;
+`;
+
+const SynthButton = styled.button`
+  margin: 8px;
+  padding: 12px 32px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: none;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
+  transition: background ${TRANSITIONS.normal}, color ${TRANSITIONS.normal};
+  opacity: 0;
+  animation: ${fadeIn} 0.8s ${TRANSITIONS.normal} forwards;
+  animation-delay: 0.3s;
+  &:nth-of-type(2) {
+    animation-delay: 0.45s;
+  }
+  &:hover {
+    background: ${COLORS.navigation.active};
+    color: #fff;
+  }
+`;
 
 export function SynthList() {
   const navigate = useNavigate();
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100vh",
-        background: "#181818",
-        color: "#fff",
-      }}
-    >
-      <h1 style={{ fontSize: 32, marginBottom: 32 }}>Web Synthesizer List</h1>
-      <button
-        onClick={() => navigate("/samplesynth")}
-        style={{
-          margin: 8,
-          padding: "12px 32px",
-          fontSize: 18,
-          borderRadius: 8,
-          border: "none",
-          background: "#333",
-          color: "#fff",
-          cursor: "pointer",
-        }}
-      >
+    <Container>
+      <Title>Web Synthesizer List</Title>
+      <SynthButton onClick={() => navigate("/samplesynth")}>
         Sample Synth
-      </button>
-      <button
-        onClick={() => navigate("/retrosynth")}
-        style={{
-          margin: 8,
-          padding: "12px 32px",
-          fontSize: 18,
-          borderRadius: 8,
-          border: "none",
-          background: "#333",
-          color: "#fff",
-          cursor: "pointer",
-        }}
-      >
+      </SynthButton>
+      <SynthButton onClick={() => navigate("/retrosynth")}>
         Retro Synth
-      </button>
-    </div>
+      </SynthButton>
+    </Container>
   );
 }

@@ -19,6 +19,14 @@ export const COLORS = {
     track: "#333333",
     tick: "#555555",
   },
+  navigation: {
+    grey: {
+      dark: "#3a3a3a",
+      medium: "#7a7a7a",
+      light: "#cacaca",
+    },
+    active: "#aa3300",
+  },
 } as const;
 
 export const SHADOWS = {

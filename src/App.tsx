@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import { BrowserRouter, useRoutes } from "react-router-dom";
 import "./App.css";
-import NavigationPopup from "./components/NavigationPopup";
+import NavigationPopup from "./components/navigation/NavigationPopup";
 import { routes } from "./routes";
 
 function AppRoutes() {
@@ -16,7 +16,7 @@ export function App() {
       <Suspense
         fallback={
           <div style={{ color: "#fff", textAlign: "center", marginTop: 40 }}>
-            로딩 중...
+            LOADING...
           </div>
         }
       >
